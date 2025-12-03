@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CapStoneProject
 {
@@ -12,6 +8,7 @@ namespace CapStoneProject
         private string description;
         private decimal price;
         private int quantity;
+
         internal int Quantity
         {
             get { return quantity; }
@@ -27,14 +24,16 @@ namespace CapStoneProject
 
         public Item(string name, string description, decimal price, int quantity)
         {
-            name = this.name;
-            description = this.description;
-            price = this.price;
-            quantity = this.quantity;
+            this.name = name;
+            this.description = description;
+            this.price = price;
+            this.quantity = quantity;
         }
 
         public Item(Item other)
         {
+            if (other == null) throw new ArgumentNullException(nameof(other));
+
             this.name = other.name;
             this.description = other.description;
             this.price = other.price;
@@ -43,26 +42,19 @@ namespace CapStoneProject
 
         public bool Equals(Item other)
         {
-            bool itemMatch = false;
+            if (other == null) return false;
 
-            if (other.name == this.name && other.description == this.description)
-            {
-                itemMatch = true;
-            }
-            return itemMatch;
+            // “Same item” if name and description match
+            return other.name == this.name &&
+                   other.description == this.description;
         }
 
         public bool IsOutOfStock()
         {
-            bool IsOutOfStock = true;
-            if (quantity > 0)
-            {
-                IsOutOfStock = false;
-            }
-            return IsOutOfStock;
+            return quantity <= 0;
         }
 
-        override public string ToString()
+        public override string ToString()
         {
             if (IsOutOfStock())
             {
@@ -70,13 +62,16 @@ namespace CapStoneProject
             }
             else
             {
-                return $"{name} - ${price}";
+                return $"{name} - ${price:F2}";
             }
         }
 
         public string GetDetails()
         {
-            return $"Name: {name}\nDescription: {description}\nPrice: ${price}\nQuantity: {quantity}";
+            return $"Name: {name}\n" +
+                   $"Description: {description}\n" +
+                   $"Price: ${price:F2}\n" +
+                   $"Quantity: {quantity}";
         }
 
         public string GetCSV()
@@ -86,11 +81,14 @@ namespace CapStoneProject
 
         public void AddToInventory(int amount)
         {
+            if (amount <= 0) return;
             this.quantity += amount;
         }
 
         public void RemoveFromInventory(int amount)
         {
+            if (amount <= 0) return;
+
             this.quantity -= amount;
             if (this.quantity < 0)
             {
@@ -99,5 +97,3 @@ namespace CapStoneProject
         }
     }
 }
-
-

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace CapStoneProject
 {
     internal class Inventory
     {
-        private List<Item> stuffForSale;
+        private readonly List<Item> stuffForSale;
 
         public Inventory()
         {
@@ -17,6 +15,12 @@ namespace CapStoneProject
 
         public void DisplayInventory()
         {
+            if (stuffForSale.Count == 0)
+            {
+                Console.WriteLine("Inventory is empty.");
+                return;
+            }
+
             for (int index = 0; index < stuffForSale.Count; index++)
             {
                 Console.WriteLine($"{index}: {stuffForSale[index]}");
@@ -25,40 +29,53 @@ namespace CapStoneProject
 
         public void DisplayDetails(int index)
         {
+            if (index < 0 || index >= stuffForSale.Count)
+            {
+                Console.WriteLine("Invalid index.");
+                return;
+            }
+
             Item thing = stuffForSale[index];
-            Console.WriteLine($"{thing.GetDetails}");
+            Console.WriteLine(thing.GetDetails());
         }
 
         public void AddInventory(int index, int amount)
         {
+            if (index < 0 || index >= stuffForSale.Count) return;
             Item thing = stuffForSale[index];
             thing.AddToInventory(amount);
         }
 
         public void RemoveInventory(int index, int amount)
         {
+            if (index < 0 || index >= stuffForSale.Count) return;
             Item thing = stuffForSale[index];
             thing.RemoveFromInventory(amount);
         }
 
         public void AddItem(Item thing)
         {
+            if (thing == null) return;
             stuffForSale.Add(thing);
         }
 
         public void RemoveItem(Item thing)
         {
+            if (thing == null) return;
             stuffForSale.Remove(thing);
         }
 
         public void PurchaseItem(Item cartItem)
         {
+            if (cartItem == null) return;
+
             for (int index = 0; index < stuffForSale.Count; index++)
             {
                 if (cartItem.Equals(stuffForSale[index]))
                 {
                     Item originalItem = stuffForSale[index];
                     originalItem.RemoveFromInventory(cartItem.Quantity);
+                    break;
                 }
             }
         }
@@ -66,6 +83,7 @@ namespace CapStoneProject
         public void Save(string filePath)
         {
             List<string> listOfAllStuff = new List<string>();
+
             foreach (Item item in stuffForSale)
             {
                 string lineCSV = item.GetCSV();
@@ -78,20 +96,30 @@ namespace CapStoneProject
 
         public void Load(string filePath)
         {
-            if (File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
-                string[] arrayOfAllStuff = File.ReadAllLines(filePath);
-                stuffForSale.Clear();
-                foreach (string csv in arrayOfAllStuff)
-                {
-                    string[] parts = csv.Split(',');
-                    string name = parts[0];
-                    string description = parts[1];
-                    decimal price = decimal.Parse(parts[2]);
-                    int quantity = int.Parse(parts[3]);
-                    Item item = new Item(name, description, price, quantity);
-                    stuffForSale.Add(item);
-                }
+                Console.WriteLine("File not found.");
+                return;
+            }
+
+            string[] arrayOfAllStuff = File.ReadAllLines(filePath);
+            stuffForSale.Clear();
+
+            foreach (string csv in arrayOfAllStuff)
+            {
+                if (string.IsNullOrWhiteSpace(csv)) continue;
+
+                string[] parts = csv.Split(',');
+                if (parts.Length != 4) continue;
+
+                string name = parts[0];
+                string description = parts[1];
+
+                if (!decimal.TryParse(parts[2], out decimal price)) continue;
+                if (!int.TryParse(parts[3], out int quantity)) continue;
+
+                Item item = new Item(name, description, price, quantity);
+                stuffForSale.Add(item);
             }
         }
 
